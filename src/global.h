@@ -42,7 +42,7 @@ public:
       , control     {modbus.outRegs.states}
       , horizontal  {control, encoder, flash.brake}
       , vertical    {control, flash.time_pause}
-      , manual      {control, vertical}
+      , manual      {control, vertical, encoder}
       , search      {control, encoder}
       , automatic   {horizontal, vertical, encoder}
       , calibration {control, encoder, flash.min_coordinate, flash.max_coordinate}
@@ -178,7 +178,14 @@ public:
                   modbus.outRegs.states.enable = modbus.inRegs.operation.enable;
                }
             }
-      
+            break;
+            case ADR (step):
+               if (state_is_manual()) {
+                  if (modbus.inRegs.step.left)
+                     manual.step_left (modbus.inRegs.step.distance);
+                  else if (modbus.inRegs.step.right)
+                     manual.step_right (modbus.inRegs.step.distance);
+               }
             break;
             default: break;
       }
