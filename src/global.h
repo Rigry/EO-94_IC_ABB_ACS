@@ -19,6 +19,7 @@ class Global
    Automatic automatic;
    Calibration calibration;
 
+   bool zero{false};
    bool lost_coordinate {true};
    bool calibration_done {false};
    void state_wait          (){state = State::wait_; modbus.outRegs.states.mode = States::Mode::wait;}
@@ -200,8 +201,8 @@ public:
             case search_:
                if (not lost_coordinate) {
                   search.reset();
-                     state = State::automatic_;
-                     modbus.outRegs.states.mode = States::Mode::auto_mode;
+                  state = State::automatic_;
+                  modbus.outRegs.states.mode = States::Mode::auto_mode;
                } else if (Sense_up::isClear()) {
                   search.stop();
                   state = State::emergency_;
@@ -245,8 +246,23 @@ public:
                   automatic.stop();
                   encoder = flash.max_coordinate;
                   modbus.outRegs.coordinate = encoder;
-               } else 
-               automatic();
+               } else if (encoder == 0 and Origin::isClear()) {
+                  lost_coordinate = true;
+                  state = State::search_;
+               }
+               // } else if (encoder == 0 and Origin::isClear()) {
+               //    control.left();
+               //    control.slow();
+               //    control.start();
+               //    zero = true;
+               // } else if (zero) {
+               //    if (Origin::isSet()) {
+               //       automatic.stop();
+               //       modbus.outRegs.coordinate = encoder = 0;
+               //       zero = false;
+               //    }
+               // } else
+                  automatic();
             break;
             case calibration_:
                if (Sense_up::isClear()) {
