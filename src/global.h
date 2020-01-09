@@ -43,7 +43,7 @@ public:
       , control     {modbus.outRegs.states}
       , horizontal  {control, encoder, flash.brake}
       , vertical    {control, flash.time_pause}
-      , manual      {control, vertical}
+      , manual      {control, vertical, encoder}
       , search      {control, encoder}
       , automatic   {horizontal, vertical, encoder}
       , calibration {control, encoder, flash.min_coordinate, flash.max_coordinate}
@@ -82,6 +82,7 @@ public:
          case ADR (brake):
             flash.brake
                = horizontal.brake
+               = modbus.outRegs.brake
                = modbus.inRegs.brake;
             break;
          case ADR (time_pause):
@@ -178,7 +179,14 @@ public:
                   modbus.outRegs.states.enable = modbus.inRegs.operation.enable;
                }
             }
-      
+            break;
+            case ADR (step):
+               if (state_is_manual()) {
+                  if (modbus.inRegs.step.left)
+                     manual.step_left (modbus.inRegs.step.distance);
+                  else if (modbus.inRegs.step.right)
+                     manual.step_right (modbus.inRegs.step.distance);
+               }
             break;
             default: break;
       }
@@ -189,11 +197,15 @@ public:
       modbus.outRegs.sensors.sense_down  = Sense_down ::isSet();
       modbus.outRegs.sensors.sense_right = Sense_right::isSet();
       modbus.outRegs.sensors.sense_left  = Sense_left ::isSet();
-      modbus.outRegs.sensors.origin      = Origin     ::isSet();
+      modbus.outRegs.sensors.origin      = Origin     ::isClear();
       modbus.outRegs.sensors.tilt        = Tilt       ::isSet();
+      if (modbus.outRegs.sensors.origin)
+         encoder = 0;
       modbus.outRegs.coordinate          = encoder;
       modbus.outRegs.states.enable       = modbus.inRegs.operation.enable;
       modbus.outRegs.states.lost         = lost_coordinate;
+      modbus.outRegs.states.stop_h       = not Control::Launch_::isSet();
+      modbus.outRegs.states.stop_v       = not control.states.up and not control.states.down;
       switch (state) {
             case wait_:
             // wait enable from modbus

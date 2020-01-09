@@ -57,7 +57,7 @@ int main(void)
    using Automatic   = Automatic   <Horizontal, Vertical, Encoder>;
    using Calibration = Calibration <Control, Sense_left, Sense_right, Encoder>;
    using Search      = Search      <Control, Sense_left, Sense_right, Origin, Encoder>;
-   using Manual      = Manual      <Control, Vertical, Sense_left, Sense_right>;
+   using Manual      = Manual      <Control, Vertical, Sense_left, Sense_right, Encoder>;
    using Modbus      = MBslave     <InRegs, OutRegs, USART_>;
    using Flash       = decltype(flash);
    using Global      = Global      <Modbus, Flash, Encoder, Horizontal, Vertical, Manual, Search, Automatic,
@@ -76,6 +76,7 @@ int main(void)
    modbus.outRegs.modbusAddress     = modbus.address = flash.modbusAddress;
    modbus.outRegs.min_coordinate    = flash.min_coordinate;
    modbus.outRegs.max_coordinate    = flash.max_coordinate;
+   modbus.outRegs.brake             = flash.brake;
    modbus.arInRegsMax[ADR(uartSet)] = 0b111111;
    modbus.inRegsMin.modbusAddress   = 1;
    modbus.inRegsMax.modbusAddress   = 255;
